@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ركن رزان</title>
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<header>
+  <h1>🌸 ركن رزان</h1>
+  <button class="btn ghost sm" data-guide>📘 دليل المعلّم</button>
+</header>
+<div id="guide">
+  <h2>📘 دليل المعلّم</h2>
+  <p><b>الجلسة اليومية (≈١٥ دقيقة):</b> افتحي «🚀 مهمتي» واضغطي «ابدئي». التطبيق يجهّز المهمة من مرحلة رزان الحالية تلقائيًا.</p>
+  <p><b>أنتِ الحَكَم:</b> بعد أن تقرأ رزان البطاقة اضغطي «✅ قرأتها صح» أو «🔁 نعيدها». الصوت الآلي للمساعدة فقط ولا يحكم على قراءتها.</p>
+  <p><b>🔁 أول مرة:</b> تظهر مساعدة (تلميح أو صوت) وخانة «ماذا قالت؟» اختيارية. <b>🔁 ثاني مرة:</b> تنتقل البطاقة لآخر الخطوة، وتعود في مهمة الغد حتى تقرأها صحيحة من أول مرة.</p>
+  <p><b>الإتقان يُحسب تلقائيًا:</b> الحرف = صحيح من أول مرة في يومين مختلفين. الدرس = ٨٠٪ من أول مرة. الآية = تسميع من الحفظ من أول مرة في يومين مختلفين. ويمكنكِ دائمًا استخدام الأزرار اليدوية «✅ تعرفه».</p>
+  <p><b>أصوات الحروف:</b> انطقي <b>الصوت</b> لا الاسم («بْ» لا «باء»). الصوت الآلي قد يقرأ الحرف المفرد باسمه؛ لذلك المرجع هو الكلمة المفتاحية (🍌 مَوْزٌ لحرف م).</p>
+  <p><b>القرآن:</b> الآية الجديدة نسمعها ونبنيها فقط في يومها، والتسميع من الحفظ يبدأ غدًا. لا أكثر من آيتين تحت الحفظ، وحدّ القرآن ٨ دقائق.</p>
+  <p><b>إذا تعبت رزان:</b> توقّفي. التقدّم محفوظ والمهمة تكمل من حيث توقّفت. لا عقاب ولا درجات — نجوم فقط.</p>
+  <p><b>نهاية المهمة:</b> اختاري مزاج رزان، ثم أرسلي الملخّص بالواتساب. النتيجة تُحفظ تلقائيًا ويراها وليّ الأمر.</p>
+  <button class="btn ghost sm" data-guide>إغلاق</button>
+</div>
+<nav class="tabs">
+  <button data-tab="mission" class="active">🚀 مهمتي</button>
+  <button data-tab="journey">🗺️ رحلتي</button>
+  <button data-tab="letters">🔤 الحروف</button>
+  <button data-tab="reading">📖 القراءة</button>
+  <button data-tab="quran">🌙 القرآن</button>
+  <button data-tab="english">🇬🇧 English</button>
+  <button data-tab="progress">⭐ تقدّمي</button>
+</nav>
+<main>
+  <section id="mission" class="panel active"><div id="missionBox"></div>
+    <details class="teacher"><summary>👨‍🏫 للمعلّم</summary><p>اجلسي بجانبها. اضغطي ✅ فقط إذا قرأت صحيحًا من نفسها. مع 🔁 شجّعيها: «نحاول مرة ثانية معًا». لا تستخدمي كلمة «خطأ».</p></details></section>
+  <section id="journey" class="panel"><div id="journeyBox"></div></section>
+  <section id="letters" class="panel"><div id="lettersBox"></div></section>
+  <section id="reading" class="panel"><div id="readingBox"></div></section>
+  <section id="quran" class="panel"><div id="quranBox"></div></section>
+  <section id="english" class="panel"><div id="englishBox"></div></section>
+  <section id="progress" class="panel"><div id="progressBox"></div></section>
+</main>
+<script src="letters.js?v=1"></script>
+<script src="lessons.js?v=1"></script>
+<script src="stories.js?v=1"></script>
+<script src="quran.js?v=1"></script>
+<script src="english.js?v=1"></script>
+<script src="sync-config.js?v=1"></script>
+<script src="core.js?v=1"></script>
+<script src="quran-ui.js?v=1"></script>
+<script src="mission.js?v=1"></script>
+<script src="ui.js?v=1"></script>
+<script src="cloud.js?v=1"></script>
+</body>
+</html>

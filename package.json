@@ -1,0 +1,8 @@
+{
+  "name": "razan",
+  "private": true,
+  "type": "module",
+  "description": "ركن رزان — صفحات ثابتة (GitHub Pages) + قاعدة Convex",
+  "scripts": { "test": "node scripts/test.mjs" },
+  "devDependencies": { "esbuild": "^0.24.0", "jsdom": "^25.0.1" }
+}

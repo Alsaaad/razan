@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&family=Amiri+Quran&family=Andika:wght@400;700&display=swap');
+:root { --bg:#FDFBF7; --ink:#1A1A2E; --or:#E67E22; --bl:#3498DB; --ok:#27AE60; --soft:#F3EEE4; --line:#E8E2D6; --fs:1; }
+* { box-sizing:border-box; }
+html { font-size:calc(24px * var(--fs)); }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:'Noto Naskh Arabic',serif; line-height:1.9;
+  direction:rtl; text-align:right; word-spacing:.12em; -webkit-tap-highlight-color:transparent; }
+/* لا letter-spacing على العربي أبدًا */
+p, li { text-align:right; }
+.ltr, .ltr * { direction:ltr; text-align:left; font-family:'Andika',sans-serif; word-spacing:normal; }
+header { display:flex; align-items:center; justify-content:space-between; gap:.5rem; padding:.5rem 1rem; }
+header h1 { font-size:1.1rem; margin:0; }
+.tabs { display:flex; gap:.3rem; overflow-x:auto; padding:.3rem .6rem; position:sticky; top:0; background:var(--bg); z-index:5; border-bottom:2px solid var(--line); }
+.tabs button { min-height:60px; min-width:60px; border:0; background:var(--soft); border-radius:16px; font:inherit; font-size:.9rem; padding:0 .8rem; white-space:nowrap; color:var(--ink); }
+.tabs button.active { background:var(--or); color:#fff; }
+main { max-width:900px; margin:0 auto; padding:.8rem 1rem 6rem; }
+.panel { display:none; } .panel.active { display:block; }
+h2 { font-size:1.3rem; margin:.3rem 0; } h3 { font-size:1rem; margin:1rem 0 .3rem; color:var(--bl); }
+.btn { min-height:60px; min-width:60px; border:0; border-radius:18px; font:inherit; font-size:1rem; padding:.2rem 1.2rem; margin:.25rem;
+  background:var(--bl); color:#fff; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,.12); }
+.btn.big { font-size:1.3rem; padding:.4rem 2rem; background:var(--or); }
+.btn.ok { background:var(--ok); } .btn.again { background:var(--or); }
+.btn.ghost { background:var(--soft); color:var(--ink); }
+.btn.sm { min-height:60px; font-size:.8rem; }
+.btn.wa { background:#25D366; display:inline-flex; align-items:center; text-decoration:none; }
+.muted { color:#6b6b80; font-size:.8rem; } .good { color:var(--ok); font-weight:700; } .note { background:#FFF4E6; padding:.5rem .8rem; border-radius:14px; }
+.mbar, .pbar { height:16px; background:var(--line); border-radius:10px; overflow:hidden; }
+.mbar span, .pbar span { display:block; height:100%; background:linear-gradient(90deg,var(--bl),var(--or)); transition:width .4s; }
+.step-name { font-weight:700; margin:.4rem 0; } .step-name small { color:#6b6b80; }
+.card { background:#fff8ee; border:3px solid var(--line); border-radius:24px; padding:1rem; text-align:center; min-height:240px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.card p { text-align:center; }
+.big-letter { font-size:6rem; line-height:1.3; color:var(--ink); } .big-letter.en { font-size:4.5rem; }
+.mid-letter { font-size:3.4rem; padding:0 .6rem; } .row-letters { display:flex; justify-content:center; gap:1rem; flex-wrap:wrap; }
+.kw { font-size:1.4rem; cursor:pointer; } .ask { color:#6b6b80; font-size:.9rem; } .big-ask { font-size:1.4rem; font-weight:700; }
+.word-big { font-size:3.2rem; } .story-line { font-size:1.7rem; line-height:2.2; }
+.pos-words { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; font-size:2.2rem; }
+.hl { color:var(--or); }
+.tw { cursor:pointer; border-radius:10px; padding:0 .1em; } .tw:active { background:#FFE7CC; }
+.sight { color:#8E44AD; border-bottom:3px dotted #8E44AD; }
+.syl { background:#EAF4FC; padding:0 .25em; border-radius:12px; } .dash { color:var(--or); font-style:normal; }
+.help { display:none; background:#EAF4FC; border-radius:18px; padding:.6rem 1rem; margin:.6rem 0; font-size:1rem; }
+.help.show { display:block; }
+.said { display:block; margin-top:.4rem; } .said input { width:100%; min-height:60px; font:inherit; border:2px solid var(--line); border-radius:14px; padding:0 .6rem; }
+.supervisor { border-top:3px dashed var(--line); margin-top:.8rem; padding-top:.4rem; display:flex; flex-wrap:wrap; align-items:center; }
+.sup-lbl { width:100%; margin:0; font-size:.75rem; color:#6b6b80; }
+.supervisor .btn { flex:1 1 40%; }
+.start, .end, .rest { text-align:center; } .start p, .end p, .rest p { text-align:center; }
+.plan { display:inline-block; text-align:right; } .rest-n { font-size:4rem; color:var(--bl); }
+.moods { display:flex; justify-content:center; flex-wrap:wrap; } .btn.mood { background:var(--soft); color:var(--ink); font-size:2rem; display:flex; flex-direction:column; line-height:1.3; }
+.btn.mood small { font-size:.6rem; } .btn.mood.sel { outline:4px solid var(--or); }
+.summary { white-space:pre-wrap; text-align:right; background:#fff; border:2px solid var(--line); border-radius:16px; padding:.8rem; font-family:inherit; font-size:1rem; direction:rtl; }
+.qtimer { color:var(--or); font-size:.8rem; }
+/* القرآن */
+.ayah { font-family:'Amiri Quran','Noto Naskh Arabic',serif; font-size:2.1rem; line-height:2.6; text-align:center; margin:.6rem 0; }
+.qw { cursor:pointer; border-radius:12px; padding:0 .1em; transition:background .2s; } .qw.on { background:#FFE0B2; } .hidden-w { color:var(--bl); }
+.anum { color:var(--or); font-size:1.4rem; }
+.gloss { background:#F7F3EA; border-radius:16px; padding:.5rem .8rem; font-size:1rem; display:flex; flex-wrap:wrap; gap:.4rem 1rem; align-items:center; }
+.q-emoji { font-size:1.8rem; } .qmodes { display:flex; flex-wrap:wrap; justify-content:center; }
+.peek summary { cursor:pointer; color:var(--bl); min-height:60px; line-height:60px; }
+.ayah-nav { display:flex; flex-wrap:wrap; gap:.3rem; }
+.chip { min-height:60px; min-width:60px; border:2px solid var(--line); background:#fff; border-radius:16px; font:inherit; }
+.chip.sel { border-color:var(--or); } .chip.done { background:#E8F8EF; } .chip.mem { background:#EAF4FC; }
+/* الحروف */
+.unit { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; padding:.3rem; border-radius:16px; margin:.2rem 0; }
+.unit.cur { background:#FFF4E6; } .u-n { color:#6b6b80; font-size:.8rem; min-width:1.5rem; }
+.lchip { min-width:72px; min-height:72px; font:inherit; font-size:1.8rem; border:2px solid var(--line); background:#fff; border-radius:18px; }
+.lchip.done { background:#E8F8EF; border-color:var(--ok); } .lchip.sel { border-color:var(--or); border-width:4px; } .lchip.en { font-family:'Andika',sans-serif; }
+.ldetail { background:#fff; border-radius:24px; padding:1rem; margin-top:.8rem; border:2px solid var(--line); text-align:center; }
+.ldetail h3, .ldetail p { text-align:center; }
+.forms { display:flex; justify-content:center; gap:1.2rem; font-size:3rem; flex-wrap:wrap; }
+.trace-wrap { display:flex; justify-content:center; } #trace { background:#fff; border:3px dashed var(--line); border-radius:20px; touch-action:none; max-width:100%; }
+.game .g-pic { font-size:4rem; } .btn.gopt { font-size:2rem; min-width:90px; background:var(--soft); color:var(--ink); }
+.lesson-list { display:flex; flex-wrap:wrap; gap:.3rem; }
+.lesson { min-height:60px; font:inherit; font-size:1rem; border:2px solid var(--line); background:#fff; border-radius:16px; padding:0 .8rem; }
+.lesson.done { background:#E8F8EF; } .lesson.cur { border-color:var(--or); border-width:3px; } .lesson.locked { opacity:.55; }
+.items { display:flex; flex-wrap:wrap; gap:.6rem; font-size:1.8rem; } .item { background:#fff; border:2px solid var(--line); border-radius:16px; padding:0 .5rem; }
+.mini { min-width:48px; min-height:48px; border:0; background:var(--soft); border-radius:12px; font-size:1rem; }
+.lview, .sview { background:#fff; border-radius:22px; padding:.8rem; margin:.6rem 0; border:2px solid var(--line); }
+.manual { margin-top:.6rem; text-align:center; }
+details.teacher { background:#F4F8FC; border-radius:16px; padding:0 .8rem; margin:.8rem 0; font-size:1rem; }
+details.teacher summary { min-height:60px; line-height:60px; cursor:pointer; color:var(--bl); font-weight:700; }
+/* الرحلة */
+.j-lbl { font-weight:700; margin-top:1rem; } .j-path { display:flex; flex-direction:column; align-items:stretch; }
+.j-node { display:flex; align-items:center; gap:.6rem; background:#fff; border:2px solid var(--line); border-radius:18px; padding:.4rem .8rem; }
+.j-node small { color:#6b6b80; font-size:.7rem; } .j-node.cur { border-color:var(--or); border-width:4px; background:#FFF8EE; }
+.j-node.done { background:#E8F8EF; } .j-node.locked { opacity:.5; } .j-ico { font-size:1.6rem; }
+.j-link { width:4px; height:18px; background:var(--line); margin:0 2rem; }
+.stats { display:flex; gap:1rem; } .stats div { background:#fff; border-radius:18px; padding:.4rem 1rem; text-align:center; border:2px solid var(--line); }
+.stats b { display:block; font-size:1.6rem; }
+.settings label { display:block; margin:.4rem 0; } .settings input { width:100%; height:40px; }
+/* الدليل */
+#guide { display:none; background:#fff; border:3px solid var(--bl); border-radius:22px; padding:1rem; margin:.6rem 1rem; font-size:1rem; }
+#guide.open { display:block; }
+.toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:.6rem 1.4rem; border-radius:30px; z-index:99; font-size:.9rem; }
+.confetti { position:fixed; inset:0; pointer-events:none; z-index:98; overflow:hidden; }
+.confetti i { position:absolute; top:-20px; width:10px; height:16px; border-radius:3px; animation:fall 2.2s ease-in forwards; }
+@keyframes fall { to { transform:translateY(105vh) rotate(540deg); opacity:.7; } }
+@media (max-width:600px) { .big-letter { font-size:5rem; } .word-big { font-size:2.5rem; } }

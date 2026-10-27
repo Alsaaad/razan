@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>متابعة رزان</title>
+<link rel="stylesheet" href="style.css?v=1">
+<style>
+  .box { background:#fff; border:2px solid var(--line); border-radius:20px; padding:.8rem 1rem; margin:.7rem 0; }
+  .strip { display:flex; gap:4px; flex-wrap:wrap; direction:ltr; justify-content:flex-end; }
+  .strip span { width:44px; height:56px; border-radius:10px; background:var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:.6rem; line-height:1.2; }
+  .strip span.on { background:var(--ok); color:#fff; }
+  .alert { background:#FFF4E6; border-right:6px solid var(--or); padding:.5rem .8rem; border-radius:12px; margin:.4rem 0; }
+  .log details { border-bottom:1px solid var(--line); padding:.3rem 0; } .log summary { cursor:pointer; min-height:56px; line-height:56px; }
+  .tags span { display:inline-block; background:#FDECEA; border-radius:12px; padding:0 .5rem; margin:.15rem; }
+</style>
+</head>
+<body><main id="app"><p>⏳ جارٍ التحميل…</p></main>
+<script src="sync-config.js?v=1"></script>
+<script>
+(async () => {
+  const C = window.RAZAN_SYNC, app = document.getElementById('app');
+  const code = new URLSearchParams(location.search).get('code') || '';
+  const ar = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const bar = (a, b) => `<div class="pbar"><span style="width:${Math.round(a / Math.max(1, b) * 100)}%"></span></div><small>${ar(a)} من ${ar(b)}</small>`;
+  let d;
+  try {
+    const r = await fetch(`${C.url}/api/query`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: 'progress:dashboard', args: { code, kid: C.kid }, format: 'json' }) });
+    d = (await r.json()).value;
+  } catch (e) { app.innerHTML = '<p>تعذّر الاتصال. تأكدي من الإنترنت ثم حدّثي الصفحة.</p>'; return; }
+  if (!d) { app.innerHTML = '<p>🔒 الرابط غير صحيح. استخدمي الرابط المُرسل لكِ كما هو.</p>'; return; }
+  const p = (d.snapshot && d.snapshot.progress) || {}, S = d.sessions || [];
+  const todayStr = new Date().toLocaleDateString('en-CA');
+  const dates = new Set([...(p.missionDates || []), ...S.map(s => s.date)]);
+  const days = []; for (let i = 13; i >= 0; i--) { const x = new Date(Date.now() - i * 864e5).toLocaleDateString('en-CA'); days.push(x); }
+  const last = [...dates].sort().pop();
+  const gap = last ? Math.round((new Date(todayStr) - new Date(last)) / 864e5) : null;
+
+  const alerts = [];
+  if (gap === null) alerts.push('لم تُنجز أي مهمة بعد — ابدئي اليوم بمهمة قصيرة.');
+  else if (gap >= 2) alerts.push(`⏸️ مرّ ${ar(gap)} أيام بدون مهمة. مهمة قصيرة اليوم تحافظ على ما تعلّمته.`);
+  const recent = S.slice(0, 3).filter(s => s.stats && s.stats.cards);
+  const avg = recent.length ? Math.round(recent.reduce((n, s) => n + (s.stats.pct || 0), 0) / recent.length) : null;
+  if (avg !== null && avg < 60) alerts.push(`📉 الدقة من أول مرة ${ar(avg)}٪ في آخر المهمات — المحتوى قد يكون أصعب من اللازم. راجعي الحروف/الكلمات المتعثّرة يدويًا قبل المهمة.`);
+  if (S.slice(0, 3).filter(s => s.stats && s.stats.mood === 'متعبة').length >= 2) alerts.push('😴 رزان متعبة في أكثر من مهمة مؤخرًا — جرّبي وقتًا آخر من اليوم أو قسّمي المهمة على جلستين.');
+  const ls = p.letters || {}, le = p.lessons || {}, st = p.stories || {}, en = p.eng || {}, q = p.quran || {};
+
+  app.innerHTML = `
+    <h2>🌸 متابعة ${esc(p.name || 'رزان')}</h2>
+    <div class="box"><div class="stats"><div>🔥<b>${ar(p.streak || 0)}</b>يوم متتالٍ</div><div>⭐<b>${ar(p.stars || 0)}</b>نجمة</div>
+      <div>🕒<b>${last ? esc(last) : '—'}</b>آخر نشاط</div></div></div>
+    ${alerts.length ? `<div class="box"><h3>🔔 تنبيهات</h3>${alerts.map(a => `<div class="alert">${a}</div>`).join('')}</div>` : ''}
+    <div class="box"><h3>📅 آخر ١٤ يومًا</h3><div class="strip">${days.map(x => `<span class="${dates.has(x) ? 'on' : ''}">${x.slice(8)}<br>${dates.has(x) ? '✓' : ''}</span>`).join('')}</div></div>
+    <div class="box"><h3>📍 المرحلة الحالية</h3><p>${esc(p.stage || '—')}</p>
+      <p>🌙 ${esc(q.surah || '')}: ${q.total ? bar(q.have, q.total) : ''}</p>
+      ${q.underMem && q.underMem.length ? `<p class="muted">تحت الحفظ: ${esc(q.underMem.join('، '))}</p>` : ''}
+      ${q.archive && q.archive.length ? `<p class="muted">📦 أتمّت: ${esc(q.archive.join('، '))}</p>` : ''}</div>
+    <div class="box"><h3>📊 التقدّم</h3>
+      <p>🔤 الحروف ${bar(ls.have || 0, ls.total || 28)}</p><p>📚 الدروس ${bar(le.have || 0, le.total || 0)}</p>
+      <p>📖 القصص ${bar(st.have || 0, st.total || 0)}</p><p>🇬🇧 English letters ${bar(en.have || 0, 26)} — كلمات: ${ar(en.words || 0)}</p></div>
+    <div class="box"><h3>🔁 تتعثّر فيها الآن</h3>${(p.trouble || []).length ? `<div class="tags">${p.trouble.map(t => `<span>${esc(t)}</span>`).join('')}</div>
+      <p class="muted">تعود تلقائيًا في المهمة التالية حتى تقرأها صحيحة من أول مرة.</p>` : '<p>لا شيء الآن 👏</p>'}</div>
+    <div class="box log"><h3>🗒️ سجل المهمات</h3>${S.length ? S.map(s => `<details><summary>${esc(s.date)} — ✅ ${ar((s.stats || {}).pct || 0)}٪ ${(s.stats || {}).mood ? '— ' + esc(s.stats.mood) : ''}</summary>
+      <pre class="summary">${esc(s.summary)}</pre></details>`).join('') : '<p>لا مهمات بعد.</p>'}</div>
+    <div class="box"><h3>🧭 ماذا أفعل حسب الأرقام؟</h3>
+      <p>• <b>الدقة ٨٠٪ فأكثر</b>: ممتاز، استمري بنفس الوتيرة.</p>
+      <p>• <b>٦٠–٨٠٪</b>: طبيعي في البداية. أعيدي البطاقات المتعثّرة يدويًا في صفحة الحروف أو القراءة قبل المهمة.</p>
+      <p>• <b>أقل من ٦٠٪</b>: خفّفي. ركّزي على الحروف المتعثّرة، واستخدمي تتبّع الحرف بالإصبع ولعبة «بأي حرف تبدأ».</p>
+      <p>• <b>يومان بلا مهمة</b>: لا بأس، لكن مهمة قصيرة أفضل من الانقطاع.</p>
+      <p>• <b>مزاج متعب متكرر</b>: غيّري الوقت، أو توقفي بعد خطوة القرآن وكمّلي لاحقًا — المهمة تحفظ مكانها.</p></div>`;
+})();
+</script>
+</body></html>
