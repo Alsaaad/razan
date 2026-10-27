@@ -373,8 +373,7 @@
       <div class="mom-zone">
         <p class="sup-lbl">👩 للماما: كيف كانت رزان اليوم؟</p>
         <div class="moods">${MOODS.map(([e, t]) => `<button class="btn mood ${m.mood === t ? 'sel' : ''}" data-mood="${t}">${e}<small>${t}</small></button>`).join('')}</div>
-        <details><summary>📝 الملخص</summary><pre class="summary" id="sumTxt">${esc(summary())}</pre></details>
-        <a class="btn wa" target="_blank" href="https://wa.me/?text=${encodeURIComponent(summary())}">📲 إرسال واتساب</a>
+        <p class="muted">✅ تم حفظ المهمة — تابعيها من صفحة المتابعة.</p>
       </div>
       <button class="btn ghost" data-act="home">🏠 العودة</button></div>`;
     if (first) { sfx('win'); confetti(); autoSay([['أَحْسَنْتِ يَا رَزَان! أَنْهَيْتِ مُهِمَّةَ اليَوْم. انْقُرِي الهَدِيَّة']]); }
