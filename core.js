@@ -15,10 +15,13 @@
     name: 'رَزَان', stars: 0, letters: {}, letterPass: {}, lessons: {}, lessonBest: {}, stories: {},
     eng: {}, engPass: {}, cvc: {}, ayat: {}, ayahPass: {}, qIntro: {}, qSurah: 0, quranArchive: {},
     trouble: [], troubleDone: {}, missionLog: [], lastMission: null, streak: 0, badgesSeen: [],
-    mission: null, fs: 1, rate: 0.8, pendingReports: []
+    mission: null, fs: 1, rate: 0.8, auto: true, sfxOn: true, pendingReports: [],
+    // إعدادات الأم: وضع المدرسة (مفتوح) أو المسار المرتّب، حرف الأسبوع، الحروف المأخوذة، سورة المدرسة
+    school: { mode: 'school', cur: 'س', known: [], surah: 108, since: 0 }
   });
   let st;
   try { st = Object.assign(blank(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { st = blank(); }
+  st.school = Object.assign(blank().school, st.school || {});
   window.state = st;
   window.save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
   window.resetState = () => { window.state = blank(); save(); };
@@ -54,6 +57,42 @@
       u.onend = () => onend && onend();
       speechSynthesis.speak(u);
     } catch (e) { onend && onend(); }
+  };
+  /** نطق سلسلة جمل بالترتيب: [['نص','ar-SA'], ['word','en-US']] */
+  window.sayAll = (parts, onend) => {
+    const list = parts.filter(p => p && p[0]);
+    const go = i => i >= list.length ? (onend && onend()) : speak(list[i][0], list[i][1] || 'ar-SA', () => go(i + 1));
+    stopAudio(); go(0);
+  };
+  /** النطق التلقائي (يمكن إيقافه من إعدادات الجهاز) */
+  window.autoSay = (parts) => { if (state.auto !== false) sayAll(Array.isArray(parts[0]) ? parts : [parts]); };
+  const PRAISE = ['أَحْسَنْتِ!', 'رَائِع!', 'مُمْتَازَة يَا رَزَان!', 'بَطَلَة!', 'مَا شَاءَ اللَّه!', 'شَاطِرَة!'];
+  window.praise = () => PRAISE[Math.floor(Math.random() * PRAISE.length)];
+
+  /* 🔔 مؤثرات صوتية خفيفة (WebAudio) — بلا ملفات */
+  let ac = null;
+  window.sfx = name => {
+    if (state.sfxOn === false) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const notes = { ok: [[660, 0], [880, .09], [1320, .18]], again: [[440, 0], [392, .12]], pop: [[900, 0]],
+        star: [[1047, 0], [1319, .07], [1568, .14], [2093, .21]], win: [[523, 0], [659, .12], [784, .24], [1047, .36], [784, .5], [1047, .62]] }[name] || [[700, 0]];
+      notes.forEach(([f, t]) => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'triangle'; o.frequency.value = f; o.connect(g); g.connect(ac.destination);
+        const s = ac.currentTime + t; g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(.25, s + .02);
+        g.gain.exponentialRampToValueAtTime(.0001, s + .22); o.start(s); o.stop(s + .25);
+      });
+    } catch (e) {}
+  };
+  /** نجمة تطير من الزر */
+  window.starBurst = (el, txt = '⭐ +١') => {
+    try {
+      const r = el ? el.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0 };
+      const s = document.createElement('div'); s.className = 'burst'; s.textContent = txt;
+      s.style.left = (r.left + r.width / 2) + 'px'; s.style.top = r.top + 'px';
+      document.body.appendChild(s); setTimeout(() => s.remove(), 1200);
+    } catch (e) {}
   };
 
   window.toast = (msg) => {
@@ -105,10 +144,22 @@
   window.curLesson = () => { const s = arabicStage(); return (s === 2 || s === 3) ? lessonsOf(s).find(x => !state.lessons[x.id]) : null; };
   window.curStory = () => ST.find(s => storyOpen(s) && !state.stories[s.id]) || null;
 
-  /* القرآن */
-  window.curSurah = () => Q.surahs[Math.min(state.qSurah || 0, Q.surahs.length - 1)];
+  /* وضع المدرسة: حروف رزان = ما أخذته + حرف الأسبوع */
+  window.schoolMode = () => state.school.mode !== 'path';
+  window.schoolLetters = () => Array.from(new Set([...(state.school.known || []), state.school.cur].filter(Boolean)));
+  window.baseLetters = w => Array.from(new Set([...stripMarks(w).replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ت').replace(/ى/g, 'ي')].filter(c => /[ا-ي]/.test(c))));
+  /** كلمات كل حروفها مأخوذة — والتي فيها حرف الأسبوع أولًا */
+  window.wordsFor = (letters, focus) => {
+    const set = new Set(letters);
+    const ok = (window.RAZAN_WORDS || []).filter(x => baseLetters(x.w).every(c => set.has(c)));
+    return ok.filter(x => focus && baseLetters(x.w).includes(focus)).concat(ok.filter(x => !(focus && baseLetters(x.w).includes(focus))));
+  };
+  window.setSchool = patch => { Object.assign(state.school, patch, { since: Date.now() }); save(); };
+
+  /* القرآن — السورة الحالية تختارها الأم (افتراضيًا: الكوثر) */
+  window.curSurah = () => Q.surahs.find(s => s.surah === state.school.surah) || Q.surahs[0];
   window.qKey = (s, i) => `${s.surah}:${i}`;
-  window.underMem = () => Object.keys(state.qIntro).filter(k => !state.ayat[k]);
+  window.underMem = () => { const p = curSurah().surah + ':'; return Object.keys(state.qIntro).filter(k => k.startsWith(p) && !state.ayat[k]); };
   function checkSurahDone() {
     const s = curSurah();
     if (state.quranArchive[s.surah]) return;
@@ -119,7 +170,8 @@
     for (const k of Object.keys(state.ayat)) if (k.startsWith(pref)) { moved.ayat[k] = state.ayat[k]; }
     for (const k of Object.keys(state.ayahPass)) if (k.startsWith(pref)) { moved.ayahPass[k] = state.ayahPass[k]; delete state.ayahPass[k]; }
     state.quranArchive[s.surah] = moved;
-    if ((state.qSurah || 0) < Q.surahs.length - 1) state.qSurah = (state.qSurah || 0) + 1;
+    const nxt = Q.surahs.find(x => !state.quranArchive[x.surah]);
+    if (nxt) { state.school.surah = nxt.surah; state.school.since = Date.now(); }
     window.__surahFinished = s.name;
   }
   window.checkSurahDone = checkSurahDone;

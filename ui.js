@@ -16,18 +16,55 @@
     document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
     document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
     ({ mission: () => renderMission(), letters: renderLetters, reading: renderReading, quran: () => renderQuran(),
-       english: renderEnglish, journey: renderJourney, progress: renderProgress })[id]();
+       english: renderEnglish, journey: renderJourney, progress: renderProgress, mom: renderMom })[id]();
     scrollTo(0, 0);
   };
+  const ALPHA = ['ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي'];
+
+  /* ---------- 👩 إعدادات الأم ---------- */
+  function renderMom() {
+    const S = state.school, Q = window.RAZAN_QURAN, school = schoolMode();
+    const known = new Set(S.known || []);
+    const words = wordsFor(schoolLetters(), S.cur);
+    $('#momBox').innerHTML = `<h2>👩 إعدادات الماما</h2>
+      <div class="mom-card"><h3>طريقة المهمة اليومية</h3>
+        <div class="seg"><button class="${school ? 'on' : ''}" data-mode="school">🏫 حسب المدرسة</button>
+        <button class="${school ? '' : 'on'}" data-mode="path">🗺️ مسار مرتّب</button></div>
+        <p class="muted">${school ? 'المهمة تأخذ حرف الأسبوع من المدرسة، وتراجع الحروف اللي أخذتها، وتعطيها كلمات من حروفها فقط.' : 'المهمة تمشي على ترتيب التطبيق: وحدات الحروف ثم الحركات والمدود (القاعدة النورانية).'}</p></div>
+      ${school ? `<div class="mom-card"><h3>🎯 حرف هذا الأسبوع في المدرسة</h3>
+        <div class="agrid">${ALPHA.map(l => `<button class="ag ${S.cur === l ? 'cur' : ''}" data-cur="${l}">${l}</button>`).join('')}</div>
+        <p class="muted">لما تبدأ المدرسة حرفًا جديدًا اختاريه هنا، والحرف السابق ينضاف تلقائيًا للحروف المأخوذة.</p></div>
+      <div class="mom-card"><h3>✅ الحروف اللي أخذتها رزان قبل</h3>
+        <div class="agrid">${ALPHA.map(l => `<button class="ag ${known.has(l) ? 'on' : ''} ${S.cur === l ? 'dim' : ''}" data-known="${l}">${l}</button>`).join('')}</div>
+        <p class="muted">انقري الحرف لتحديده أو إلغائه. الكلمات المتاحة الآن من حروفها: <b>${ar(words.length)}</b>${words.length ? ' — ' + words.slice(0, 8).map(x => x.w).join('، ') : ''}</p></div>` : ''}
+      <div class="mom-card"><h3>🌙 سورة المدرسة</h3>
+        <div class="seg wrap">${Q.surahs.map(s => `<button class="${S.surah === s.surah ? 'on' : ''}" data-surah="${s.surah}">${s.name.replace('سورة ', '')}${state.quranArchive[s.surah] ? ' ✅' : ''}</button>`).join('')}</div>
+        <p class="muted">التقدّم في كل سورة محفوظ لوحده؛ تقدرين ترجعين لأي سورة.</p></div>
+      <div class="mom-card"><h3>📱 هذا الجهاز</h3>
+        <div class="settings">
+          <label class="tog"><input type="checkbox" id="autoIn" ${state.auto !== false ? 'checked' : ''}> 🗣️ نطق تلقائي لكل شيء</label>
+          <label class="tog"><input type="checkbox" id="sfxIn" ${state.sfxOn !== false ? 'checked' : ''}> 🔔 أصوات المكافأة</label>
+          <label>حجم الخط <input type="range" min="0.9" max="1.5" step="0.1" value="${state.fs || 1}" id="fsIn"></label>
+          <label>سرعة الصوت العربي <input type="range" min="0.5" max="1.1" step="0.1" value="${state.rate || 0.8}" id="rateIn"></label>
+        </div></div>
+      ${teacher('هذه الإعدادات تتزامن بين كل الأجهزة (ما عدا قسم «هذا الجهاز»). صفحة المتابعة رابطها عندك بالرسالة.')}`;
+    $('#autoIn').onchange = e => { state.auto = e.target.checked; save(); if (state.auto) speak('تَمَام'); };
+    $('#sfxIn').onchange = e => { state.sfxOn = e.target.checked; save(); sfx('ok'); };
+    $('#fsIn').oninput = e => { state.fs = +e.target.value; applyFs(); save(); };
+    $('#rateIn').oninput = e => { state.rate = +e.target.value; save(); };
+  }
 
   /* ---------- الحروف ---------- */
   let curL = null;
   function renderLetters() {
     const box = $('#lettersBox');
     const cu = curUnit();
+    const chip = l => `<button class="lchip ${state.letters[l] ? 'done' : ''} ${curL === l ? 'sel' : ''} ${schoolMode() && state.school.cur === l ? 'week' : ''} ${schoolMode() && (state.school.known || []).includes(l) ? 'taken' : ''}" data-l="${l}">${l}</button>`;
     box.innerHTML = `<h2>🔤 الحروف</h2>
-      ${L.units.map((u, i) => `<div class="unit ${i === cu ? 'cur' : ''}"><span class="u-n">${ar(i + 1)}</span>
-        ${u.letters.map(l => `<button class="lchip ${state.letters[l] ? 'done' : ''} ${curL === l ? 'sel' : ''}" data-l="${l}">${l}</button>`).join('')}</div>`).join('')}
+      ${schoolMode() ? `<div class="unit cur">${ALPHA.map(chip).join('')}</div>
+        <p class="muted">🎯 = حرف الأسبوع • الإطار الأزرق = أخذته بالمدرسة • الأخضر = أتقنته</p>`
+      : L.units.map((u, i) => `<div class="unit ${i === cu ? 'cur' : ''}"><span class="u-n">${ar(i + 1)}</span>
+        ${u.letters.map(chip).join('')}</div>`).join('')}
       <div id="letterDetail">${curL ? letterDetail(curL) : '<p class="muted">اختاري حرفًا 👆</p>'}</div>
       ${teacher('ابدئي بالوحدة الملوّنة. انطقي <b>صوت</b> الحرف لا اسمه («بْ» لا «باء»). الحروف المتشابهة بالنقاط موزّعة على وحدات متباعدة عمدًا. زر «تعرفه» لما تتقنه رزان من الروضة.')}`;
     if (curL) setupTrace();
@@ -73,8 +110,8 @@
     const opts = [target]; while (opts.length < 3) { const o = pool[Math.floor(Math.random() * pool.length)] || Object.keys(L.info)[opts.length]; if (!opts.includes(o)) opts.push(o); }
     opts.sort(() => Math.random() - 0.5);
     const i = L.info[target];
-    box.innerHTML = `<div class="game"><div class="g-pic tw" data-say="${i.word}">${i.emoji}</div>
-      <p class="muted">انقري الصورة لتسمعي الكلمة</p>
+    box.innerHTML = `<div class="game"><button class="g-pic" data-say="${i.word}">${i.emoji}</button>
+      <p class="muted">🔊 انقري الصورة لتسمعي الكلمة، ثم اختاري أول حرف</p>
       <div>${opts.map(o => `<button class="btn gopt" data-g="${o}" data-t="${target}">${o}</button>`).join('')}</div></div>`;
   }
 
@@ -142,24 +179,35 @@
     let cur = nodes.findIndex(n => !n.done); if (cur < 0) cur = nodes.length - 1;
     return nodes.map((n, i) => Object.assign(n, { cur: i === cur, locked: i > cur }));
   };
-  window.stageLabel = () => { const c = ARABIC_NODES().find(n => n.cur); return c ? `${c.name} (${c.sub})` : ''; };
-  window.journeyInfo = () => ({ arabic: ARABIC_NODES(), surah: curSurah().name, archive: Object.values(state.quranArchive).map(x => x.name) });
+  /* وضع المدرسة: كل حرف أخذته محطة، وحرف الأسبوع هو المحطة الحالية */
+  const SCHOOL_NODES = () => {
+    const ls = schoolLetters();
+    return ls.map(l => ({ icon: (L.info[l] || {}).emoji || '🔤', name: `حرف ${l}`, sub: (L.info[l] || {}).word || '',
+      done: !!state.letters[l], cur: l === state.school.cur, locked: false, have: (state.letterPass[l] || []).length, total: 2 }));
+  };
+  window.stageLabel = () => {
+    if (schoolMode()) return `حرف الأسبوع: ${state.school.cur} — أخذت ${ar(schoolLetters().length)} حروف، أتقنت ${ar(schoolLetters().filter(l => state.letters[l]).length)}`;
+    const c = ARABIC_NODES().find(n => n.cur); return c ? `${c.name} (${c.sub})` : '';
+  };
+  window.journeyInfo = () => ({ arabic: schoolMode() ? SCHOOL_NODES() : ARABIC_NODES(), surah: curSurah().name, archive: Object.values(state.quranArchive).map(x => x.name) });
   function renderJourney() {
-    const node = n => `<div class="j-node ${n.done ? 'done' : ''} ${n.cur ? 'cur' : ''} ${n.locked ? 'locked' : ''}">
-      <span class="j-ico">${n.done ? '✅' : n.locked ? '🔒' : n.icon}</span><b>${n.name}</b><small>${n.sub}</small>
-      ${n.cur ? `<small>${ar(n.have)} من ${ar(n.total)}</small>` : ''}</div>`;
+    let k = 0;
+    const node = n => `<div class="j-node ${n.done ? 'done' : ''} ${n.cur ? 'cur' : ''} ${n.locked ? 'locked' : ''}" style="--x:${[0, 1, 2, 1][k++ % 4]}">
+      <span class="j-ico">${n.done ? '⭐' : n.locked ? '🔒' : n.icon}</span><b>${n.name}</b><small>${n.sub}</small>
+      ${n.cur ? `<small class="j-here">🦉 أنا هنا — ${ar(n.have)} من ${ar(n.total)}</small>` : ''}</div>`;
     const Q = window.RAZAN_QURAN;
-    $('#journeyBox').innerHTML = `<h2>🗺️ رحلتي</h2><p class="j-lbl">📖 القراءة</p>
-      <div class="j-path">${ARABIC_NODES().map(node).join('<span class="j-link"></span>')}</div>
-      <p class="j-lbl">🌙 القرآن</p><div class="j-path">${Q.surahs.map((s, i) => {
-        const done = !!state.quranArchive[s.surah], cur = i === (state.qSurah || 0) && !done;
+    const arabic = schoolMode() ? SCHOOL_NODES() : ARABIC_NODES();
+    $('#journeyBox').innerHTML = `<h2>🗺️ رحلتي</h2><p class="j-lbl">📖 ${schoolMode() ? 'حروفي من المدرسة' : 'القراءة'}</p>
+      <div class="j-path">${arabic.length ? arabic.map(node).join('') : '<p class="muted">ماما تختار الحروف من 👩 الإعدادات</p>'}</div>
+      <p class="j-lbl">🌙 القرآن</p><div class="j-path">${Q.surahs.map(s => {
+        const done = !!state.quranArchive[s.surah], cur = s.surah === curSurah().surah && !done;
         const have = s.ayat.filter((_, j) => state.ayat[qKey(s, j)]).length;
-        return node({ icon: '🌙', name: s.name, sub: `${ar(s.ayat.length)} آيات`, done, cur, locked: !done && !cur, have, total: s.ayat.length });
-      }).join('<span class="j-link"></span>')}</div>
+        return node({ icon: '🌙', name: s.name, sub: `${ar(s.ayat.length)} آيات`, done, cur, locked: false, have, total: s.ayat.length });
+      }).join('')}</div>
       <p class="j-lbl">🇬🇧 English</p><div class="j-path">${E.groups.map((g, i) => {
         const done = g.every(l => state.eng[l]); const gi = engGroup();
         return node({ icon: '🔤', name: g.join(' '), sub: '', done, cur: i === gi, locked: !done && i !== gi, have: g.filter(l => state.eng[l]).length, total: g.length });
-      }).join('<span class="j-link"></span>')}</div>`;
+      }).join('')}</div>`;
   }
 
   /* ---------- تقدّمي + الإعدادات ---------- */
@@ -172,13 +220,8 @@
       <p>🔤 الحروف ${bar(lk, 28)}</p><p>📚 الدروس ${bar(le, LS.length)}</p>
       <p>📖 القصص ${bar(ST.filter(s => state.stories[s.id]).length, ST.length)}</p>
       <p>🇬🇧 English ${bar(Object.keys(state.eng).length, 26)}</p>
-      <h3>⚙️ إعدادات هذا الجهاز</h3>
-      <div class="settings">
-        <label>حجم الخط <input type="range" min="0.9" max="1.5" step="0.1" value="${state.fs || 1}" id="fsIn"></label>
-        <label>سرعة الصوت العربي <input type="range" min="0.5" max="1.1" step="0.1" value="${state.rate || 0.8}" id="rateIn"></label>
-      </div>`;
-    $('#fsIn').oninput = e => { state.fs = +e.target.value; applyFs(); save(); };
-    $('#rateIn').oninput = e => { state.rate = +e.target.value; save(); };
+      <div class="badges">${[[5, '🌱'], [20, '🌼'], [50, '🌈'], [100, '🏆'], [200, '👑']].map(([n, b]) =>
+        `<span class="badge ${state.stars >= n ? 'got' : ''}">${b}<small>${ar(n)}⭐</small></span>`).join('')}</div>`;
   };
   window.applyFs = () => document.documentElement.style.setProperty('--fs', state.fs || 1);
 
@@ -186,18 +229,28 @@
   document.addEventListener('click', e => {
     const t = e.target.closest('button,[data-say]'); if (!t) return;
     const d = t.dataset;
-    if (d.tab) return showTab(d.tab);
+    if (d.tab) { sfx('pop'); showTab(d.tab); if (d.tabsay && state.auto !== false) speak(d.tabsay); return; }
+    if (d.goto) { showTab(d.goto); return; }
     if (t.closest('#missionBox') || t.closest('#quranBox')) return;
-    if (d.say) return speak(d.say, d.lang || 'ar-SA');
-    if (d.l) { curL = d.l; renderLetters(); $('#letterDetail').scrollIntoView({ behavior: 'smooth' }); return; }
+    if (d.say) { sfx('pop'); return speak(d.say, d.lang || 'ar-SA'); }
+    if (d.mode) { setSchool({ mode: d.mode }); return renderMom(); }
+    if (d.cur) { const S = state.school; const known = new Set(S.known || []);
+      if (S.cur && S.cur !== d.cur) known.add(S.cur); known.delete(d.cur);
+      setSchool({ cur: d.cur, known: [...known] }); speak(`حَرْفُ الأُسْبُوع: ${L.names[d.cur] || d.cur}`); return renderMom(); }
+    if (d.known) { const k = new Set(state.school.known || []); k.has(d.known) ? k.delete(d.known) : k.add(d.known);
+      setSchool({ known: [...k] }); sfx('pop'); return renderMom(); }
+    if (d.surah) { setSchool({ surah: +d.surah }); window.__qSel = 0; speak(curSurah().name); return renderMom(); }
+    if (d.l) { curL = d.l; renderLetters(); $('#letterDetail').scrollIntoView({ behavior: 'smooth' });
+      if (state.auto !== false) sayAll([[`حَرْفُ ${L.names[d.l] || d.l}`], [L.info[d.l].word]]); return; }
     if (d.lman) { if (state.letters[d.lman]) delete state.letters[d.lman]; else state.letters[d.lman] = today(); save(); return renderLetters(); }
-    if (d.g) { if (d.g === d.t) { toast('👏 رائع!'); confetti(); addStars(1); save(); setTimeout(newGame, 900); } else toast('🤔 لنسمع الكلمة مرة أخرى'); return; }
-    if (d.les) return lessonView(d.les);
+    if (d.g) { if (d.g === d.t) { sfx('star'); starBurst(t); speak(praise()); confetti(); addStars(1); save(); setTimeout(newGame, 1200); }
+      else { sfx('again'); t.classList.add('wobble'); speak(L.info[d.t].word); } return; }
     if (d.split) { t.previousElementSibling.innerHTML = syllables(d.split).map(s => `<span class="syl tw" data-say="${s}">${s}</span>`).join('<i class="dash">ـ</i>'); return; }
     if (d.lesman) { if (state.lessons[d.lesman]) delete state.lessons[d.lesman]; else state.lessons[d.lesman] = today(); save(); renderReading(); return lessonView(d.lesman); }
     if (d.sto) { const s = ST.find(x => x.id === d.sto); if (!storyOpen(s)) return toast('🔒 تُفتح بعد درسها'); return storyView(d.sto); }
     if (d.stoman) { if (state.stories[d.stoman]) delete state.stories[d.stoman]; else state.stories[d.stoman] = today(); save(); renderReading(); return storyView(d.stoman); }
-    if (d.en) return enDetail(d.en);
+    if (d.en) { enDetail(d.en); if (state.auto !== false) speak(E.letters[d.en].word, 'en-US'); return; }
+    if (d.les) { lessonView(d.les); const x = LS.find(l => l.id === d.les); if (state.auto !== false) speak(x.title.replace(/[«»:ـ]/g, ' ')); return; }
     if (d.enman) { if (state.eng[d.enman]) delete state.eng[d.enman]; else state.eng[d.enman] = today(); save(); renderEnglish(); return enDetail(d.enman); }
     if (d.guide !== undefined) { $('#guide').classList.toggle('open'); return; }
   });

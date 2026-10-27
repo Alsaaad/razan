@@ -6,7 +6,7 @@
 (() => {
   const C = window.RAZAN_SYNC;
   if (!C || !C.url || typeof fetch !== 'function') return;
-  const LOCAL = ['fs', 'rate', 'pendingReports'];
+  const LOCAL = ['fs', 'rate', 'auto', 'sfxOn', 'pendingReports'];
 
   async function call(kind, path, args) {
     const r = await fetch(`${C.url}/api/${kind}`, { method: 'POST', headers: { 'Content-Type': 'application/json' },

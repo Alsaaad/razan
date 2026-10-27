@@ -1,6 +1,10 @@
 // يولّد quran.js من api.quran.com — المعاني والرموز مكتوبة يدويًا هنا. التشغيل: node scripts/gen_quran.mjs
 // لإضافة سورة: أضف رقمها ومعانيها في META، وأضفها لقائمة ORDER، ثم أعد التشغيل.
 const META = {
+ 108: { name: 'سورة الكوثر', ayat: [
+  { e:'🏞️', g:[{w:'أَعْطَيْنَاكَ',m:'أعطيناك يا محمد ﷺ'},{w:'الْكَوْثَرَ',m:'نهر عظيم في الجنة'}]},
+  { e:'🕌', g:[{w:'فَصَلِّ لِرَبِّكَ',m:'صلِّ لله وحده'},{w:'وَانْحَرْ',m:'واذبح الأضحية لله'}]},
+  { e:'✂️', g:[{w:'شَانِئَكَ',m:'الذي يكرهك'},{w:'الْأَبْتَرُ',m:'المقطوع من كل خير'}]} ]},
  1: { name: 'سورة الفاتحة', ayat: [
   { e:'🤲', g:[{w:'بِسْمِ اللَّهِ',m:'أبدأ باسم الله'},{w:'الرَّحْمَٰنِ الرَّحِيمِ',m:'كثير الرحمة بنا'}]},
   { e:'💚', g:[{w:'الْحَمْدُ لِلَّهِ',m:'الشكر لله'},{w:'الْعَالَمِينَ',m:'كل المخلوقات'}]},
@@ -28,7 +32,7 @@ const META = {
   { e:'💭', g:[{w:'صُدُورِ',m:'القلوب'}]},
   { e:'👥', g:[{w:'الْجِنَّةِ',m:'الجن'}]} ]}
 };
-const ORDER = [1, 112, 113, 114];
+const ORDER = [108, 1, 112, 113, 114];
 const out = [];
 for (const s of ORDER) {
   const r = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${s}?words=true&word_fields=text_uthmani,audio_url&per_page=50`);
@@ -43,6 +47,7 @@ for (const s of ORDER) {
 }
 const fs = await import('fs');
 fs.writeFileSync(new URL('../quran.js', import.meta.url), `/* القرآن لرزان — مولَّد من scripts/gen_quran.mjs (لا تعدّل يدويًا؛ عدّل META ثم أعد التشغيل)
-   الترتيب: الفاتحة ← الإخلاص ← الفلق ← الناس. عند الانتقال لسورة جديدة يُؤرشف تقدّم السابقة. */
+   الترتيب الافتراضي: الكوثر ← الفاتحة ← الإخلاص ← الفلق ← الناس. الأم تقدر تختار سورة المدرسة من الإعدادات.
+   عند الانتقال لسورة جديدة يُؤرشف تقدّم السابقة. */
 window.RAZAN_QURAN = { wordAudioBase: 'https://audio.qurancdn.com/', surahs: ${JSON.stringify(out,null,1)} };\n`);
 console.log(out.map(s=>s.name+':'+s.ayat.length).join('\n'));

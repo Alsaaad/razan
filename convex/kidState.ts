@@ -88,6 +88,10 @@ export function mergeStates(a: S | null, b: S): S {
   out.lastMission = st.last
   out.streak = st.streak
   out.badgesSeen = Array.from(new Set([...(a.badgesSeen || []), ...(inc.badgesSeen || [])]))
+  out.wordsOk = orMap(a.wordsOk, inc.wordsOk)
+  // إعدادات الأم (وضع المدرسة، حرف الأسبوع، السورة): آخر تعديل يفوز — جهاز قديم لا يرجّعها
+  const sa = a.school || null, sb = inc.school || null
+  out.school = !sa ? sb : !sb ? sa : (sb.since || 0) >= (sa.since || 0) ? sb : sa
   out.mission = mergeMission(a.mission, inc.mission)
   return out
 }
