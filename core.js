@@ -17,11 +17,19 @@
     trouble: [], troubleDone: {}, missionLog: [], lastMission: null, streak: 0, badgesSeen: [],
     mission: null, fs: 1, rate: 0.8, auto: true, sfxOn: true, pendingReports: [],
     // إعدادات الأم: وضع المدرسة (مفتوح) أو المسار المرتّب، حرف الأسبوع، الحروف المأخوذة، سورة المدرسة
-    school: { mode: 'school', cur: 'س', known: [], surah: 108, since: 0 }
+    school: schoolDefaults()
   });
+  // الإعداد الافتراضي من منهج المدرسة: حرف الأسبوع = RAZAN_SCHOOL.start، والمأخوذ = ما قبله في المنهج
+  function schoolDefaults() {
+    const SC = window.RAZAN_SCHOOL || { order: [], start: 'س' };
+    const i = SC.order.indexOf(SC.start);
+    return { mode: 'school', cur: SC.start, known: i > 0 ? SC.order.slice(0, i) : [], surah: (Q && Q.defaultSurah) || 107, since: 0 };
+  }
   let st;
   try { st = Object.assign(blank(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { st = blank(); }
   st.school = Object.assign(blank().school, st.school || {});
+  // جهاز فتح النسخة السابقة ولم تُعدَّل إعداداته: نطبّق المنهج والسورة الافتراضية
+  if (!st.school.since && !(st.school.known || []).length) st.school = schoolDefaults();
   window.state = st;
   window.save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
   window.resetState = () => { window.state = blank(); save(); };
@@ -155,6 +163,8 @@
     return ok.filter(x => focus && baseLetters(x.w).includes(focus)).concat(ok.filter(x => !(focus && baseLetters(x.w).includes(focus))));
   };
   window.setSchool = patch => { Object.assign(state.school, patch, { since: Date.now() }); save(); };
+  /** الحرف التالي في منهج المدرسة بعد حرف الأسبوع */
+  window.nextSchoolLetter = () => { const o = (window.RAZAN_SCHOOL || {}).order || []; const i = o.indexOf(state.school.cur); return i >= 0 ? o[i + 1] || null : null; };
 
   /* القرآن — السورة الحالية تختارها الأم (افتراضيًا: الكوثر) */
   window.curSurah = () => Q.surahs.find(s => s.surah === state.school.surah) || Q.surahs[0];
@@ -170,7 +180,8 @@
     for (const k of Object.keys(state.ayat)) if (k.startsWith(pref)) { moved.ayat[k] = state.ayat[k]; }
     for (const k of Object.keys(state.ayahPass)) if (k.startsWith(pref)) { moved.ayahPass[k] = state.ayahPass[k]; delete state.ayahPass[k]; }
     state.quranArchive[s.surah] = moved;
-    const nxt = Q.surahs.find(x => !state.quranArchive[x.surah]);
+    const at = Q.surahs.indexOf(s);
+    const nxt = Q.surahs.slice(at + 1).find(x => !state.quranArchive[x.surah]) || Q.surahs.find(x => !state.quranArchive[x.surah]);
     if (nxt) { state.school.surah = nxt.surah; state.school.since = Date.now(); }
     window.__surahFinished = s.name;
   }

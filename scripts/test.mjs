@@ -45,15 +45,18 @@ function runMission(w, plan) {
   click(w, '[data-mood="جيدة"]');
 }
 
-// ---------- إعداد الماما: حرف الأسبوع س، وأخذت قبله ا ب ر م ل ق ----------
+// ---------- الإعداد الافتراضي من منهج لغتي: حرف الأسبوع س، والمأخوذ قبله م ب ل د ن ر ص ف، والسورة الماعون ----------
 let w = boot(); w.__TODAY = '2026-11-01'; w.renderAll();
-w.showTab('mom');
-['ا', 'ب', 'ر', 'م', 'ل', 'ق'].forEach(l => click(w, `[data-known="${l}"]`));
-assert.equal(w.state.school.cur, 'س'); assert.deepEqual([...w.state.school.known].sort(), ['ا', 'ب', 'ر', 'ق', 'ل', 'م'].sort());
+assert.equal(w.state.school.cur, 'س'); assert.deepEqual(w.state.school.known, ['م', 'ب', 'ل', 'د', 'ن', 'ر', 'ص', 'ف']);
+assert.equal(w.curSurah().name, 'سورة الماعون'); assert.equal(w.RAZAN_QURAN.surahs.length, 23);
+assert.equal(w.nextSchoolLetter(), 'ق');
+w.showTab('mom'); assert(w.document.querySelector('[data-cur="ق"].setup'), 'next-letter button');
 const words = w.wordsFor(w.schoolLetters(), 'س');
-assert(words.length >= 5 && words.every(x => w.baseLetters(x.w).every(c => w.schoolLetters().includes(c))), 'words use only known letters');
+assert(words.length >= 6 && words.every(x => w.baseLetters(x.w).every(c => w.schoolLetters().includes(c))), 'words use only known letters');
 assert(w.baseLetters(words[0].w).includes('س'), 'words with the week letter come first');
-console.log('✅ mom setup OK — words:', words.map(x => x.w).join(' '));
+// بناء الآيات الطويلة: مقاطع ≤ ٥ كلمات
+const seq = w.buildSequence(21); assert(seq.length > 21 && !seq.join(',').includes('0,1,2,3,4,5,6,7,pause'), 'long ayah built in chunks');
+console.log('✅ curriculum defaults OK — words:', words.map(x => x.w).join(' '));
 
 // ---------- اليوم ١ (وضع المدرسة) ----------
 w.showTab('mission');
@@ -61,16 +64,16 @@ const plan1 = w.buildPlan();
 console.log('Day1 steps:', plan1.steps.map(s => s.name + '×' + s.cards.length).join(' | '));
 assert(plan1.steps[0].name.includes('س') && plan1.steps[0].cards.some(c => c.type === 'pick'), 'week letter step with game');
 assert(plan1.steps.some(s => s.name.includes('كلمات')), 'words step');
-assert(plan1.steps.some(s => s.name.includes('الكوثر')), 'Al-Kawthar');
+assert(plan1.steps.some(s => s.name.includes('الماعون')), 'Al-Maun');
 spoken.length = 0;
-runMission(w, (c, a) => c.key === 'L:ب' && !a[c.key] ? 2 : c.key === 'L:ر' && !a[c.key] ? 1 : 0);
+runMission(w, (c, a) => c.key === 'L:ب' && !a[c.key] ? 2 : c.key === 'L:ل' && !a[c.key] ? 1 : 0);
 let S = w.state;
 assert(spoken.some(t => /صَوْتُ/.test(t)) && spoken.some(t => /السِّين/.test(t)), 'cards are spoken');
 assert(S.mission.done && S.missionLog.length === 1, 'logged');
 assert(S.trouble.some(t => t.t === 'L:ب'), 'ب saved for tomorrow');
-assert(!S.trouble.some(t => t.t === 'L:ر'), 'ر not saved (one retry only)');
-assert.deepEqual(S.letterPass['س'], ['2026-11-01']); assert(!S.letterPass['ب'] && !S.letterPass['ر'], 'no first-try credit');
-assert(S.qIntro['108:0'] === '2026-11-01', 'Kawthar ayah 1 introduced');
+assert(!S.trouble.some(t => t.t === 'L:ل'), 'ل not saved (one retry only)');
+assert.deepEqual(S.letterPass['س'], ['2026-11-01']); assert(!S.letterPass['ب'] && !S.letterPass['ل'], 'no first-try credit');
+assert(S.qIntro['107:0'] === '2026-11-01', 'Al-Maun ayah 1 introduced');
 assert(S.pendingReports.length === 1, 'offline report queued');
 assert(S.mission.opened && S.mission.starsToday > 0, 'chest opened');
 assert(/ماذا قالت/.test(w.missionSummary()) && /حرف الأسبوع: س/.test(w.missionSummary()));
@@ -81,7 +84,7 @@ w = boot(w.localStorage.getItem('razan-v1')); w.__TODAY = '2026-11-02'; w.render
 const p2 = w.buildPlan();
 console.log('Day2 steps:', p2.steps.map(s => s.name + '×' + s.cards.length).join(' | '));
 assert(p2.steps[0].cards.some(c => c.key === 'L:ب'), 'trouble comes back first');
-assert(p2.steps.some(s => s.cards.some(c => c.key === 'Q:108:0')), 'ayah recite next day');
+assert(p2.steps.some(s => s.cards.some(c => c.key === 'Q:107:0')), 'ayah recite next day');
 runMission(w, () => 0);
 S = w.state;
 assert(S.letters['س'] && S.letters['م'], 'letters mastered after 2 first-try days');
@@ -103,11 +106,11 @@ runMission(w, (c, a) => c.type === 'item' && c.text === 'بَ' && !a[c.key] ? 1 
 assert(S.lessons['h-fatha'] && S.lessonBest['h-fatha'] === 88, 'lesson mastered at 88% (7/8)');
 console.log('✅ lesson mastery OK');
 
-// ---------- إتمام السورة → أرشيف ----------
-const sur = w.curSurah(); assert.equal(sur.surah, 108);
-sur.ayat.forEach((_, i) => { S.ayahPass['108:' + i] = ['2026-11-01']; S.qIntro['108:' + i] = '2026-11-01'; });
-sur.ayat.forEach((_, i) => w.passAyah('108:' + i));
-assert(S.quranArchive[108] && w.curSurah().surah === 1 && w.underMem().length === 0);
+// ---------- إتمام السورة → أرشيف → السورة التالية في القائمة ----------
+const sur = w.curSurah(); assert.equal(sur.surah, 107);
+sur.ayat.forEach((_, i) => { S.ayahPass['107:' + i] = ['2026-11-01']; S.qIntro['107:' + i] = '2026-11-01'; });
+sur.ayat.forEach((_, i) => w.passAyah('107:' + i));
+assert(S.quranArchive[107] && w.curSurah().surah === 106 && w.underMem().length === 0, 'Maun → Quraysh');
 console.log('✅ surah archive OK →', w.curSurah().name);
 
 // ---------- الدمج بين جهازين ----------

@@ -1,53 +1,47 @@
-// يولّد quran.js من api.quran.com — المعاني والرموز مكتوبة يدويًا هنا. التشغيل: node scripts/gen_quran.mjs
-// لإضافة سورة: أضف رقمها ومعانيها في META، وأضفها لقائمة ORDER، ثم أعد التشغيل.
-const META = {
- 108: { name: 'سورة الكوثر', ayat: [
-  { e:'🏞️', g:[{w:'أَعْطَيْنَاكَ',m:'أعطيناك يا محمد ﷺ'},{w:'الْكَوْثَرَ',m:'نهر عظيم في الجنة'}]},
-  { e:'🕌', g:[{w:'فَصَلِّ لِرَبِّكَ',m:'صلِّ لله وحده'},{w:'وَانْحَرْ',m:'واذبح الأضحية لله'}]},
-  { e:'✂️', g:[{w:'شَانِئَكَ',m:'الذي يكرهك'},{w:'الْأَبْتَرُ',m:'المقطوع من كل خير'}]} ]},
- 1: { name: 'سورة الفاتحة', ayat: [
-  { e:'🤲', g:[{w:'بِسْمِ اللَّهِ',m:'أبدأ باسم الله'},{w:'الرَّحْمَٰنِ الرَّحِيمِ',m:'كثير الرحمة بنا'}]},
-  { e:'💚', g:[{w:'الْحَمْدُ لِلَّهِ',m:'الشكر لله'},{w:'الْعَالَمِينَ',m:'كل المخلوقات'}]},
-  { e:'💞', g:[{w:'الرَّحْمَٰنِ الرَّحِيمِ',m:'يرحمنا كثيرًا'}]},
-  { e:'⚖️', g:[{w:'مَالِكِ',m:'صاحب ومالك'},{w:'يَوْمِ الدِّينِ',m:'يوم القيامة'}]},
-  { e:'🙏', g:[{w:'نَعْبُدُ',m:'نصلّي ونطيع'},{w:'نَسْتَعِينُ',m:'نطلب المساعدة'}]},
-  { e:'🛤️', g:[{w:'اهْدِنَا',m:'دُلّنا'},{w:'الصِّرَاطَ الْمُسْتَقِيمَ',m:'الطريق الصحيح'}]},
-  { e:'🌟', g:[{w:'أَنْعَمْتَ عَلَيْهِمْ',m:'الصالحون الذين أكرمتهم'},{w:'الضَّالِّينَ',m:'الذين أضاعوا الطريق'}]} ]},
- 112: { name: 'سورة الإخلاص', ayat: [
-  { e:'☝️', g:[{w:'أَحَدٌ',m:'واحد لا شريك له'}]},
-  { e:'🏔️', g:[{w:'الصَّمَدُ',m:'الذي يحتاجه الجميع'}]},
-  { e:'🚫', g:[{w:'لَمْ يَلِدْ',m:'ليس له أولاد'},{w:'وَلَمْ يُولَدْ',m:'ليس له أب ولا أم'}]},
-  { e:'✨', g:[{w:'كُفُوًا',m:'مثيلًا وشبيهًا'}]} ]},
- 113: { name: 'سورة الفلق', ayat: [
-  { e:'🌅', g:[{w:'أَعُوذُ',m:'أحتمي وألتجئ'},{w:'الْفَلَقِ',m:'الصبح'}]},
-  { e:'🛡️', g:[{w:'مِنْ شَرِّ',m:'من أذى'},{w:'مَا خَلَقَ',m:'كل المخلوقات'}]},
-  { e:'🌑', g:[{w:'غَاسِقٍ',m:'الليل المظلم'},{w:'وَقَبَ',m:'دخل وأظلم'}]},
-  { e:'🪢', g:[{w:'النَّفَّاثَاتِ',m:'الساحرات ينفخن'},{w:'الْعُقَدِ',m:'العُقَد في الخيط'}]},
-  { e:'👀', g:[{w:'حَاسِدٍ',m:'من يتمنى زوال نعمتك'}]} ]},
- 114: { name: 'سورة الناس', ayat: [
-  { e:'🛡️', g:[{w:'أَعُوذُ',m:'أحتمي'},{w:'بِرَبِّ النَّاسِ',m:'بالله رب كل الناس'}]},
-  { e:'👑', g:[{w:'مَلِكِ',m:'الملِك'}]},
-  { e:'🕌', g:[{w:'إِلَٰهِ',m:'المعبود'}]},
-  { e:'🙈', g:[{w:'الْوَسْوَاسِ',m:'الشيطان يوسوس'},{w:'الْخَنَّاسِ',m:'يختفي عند ذكر الله'}]},
-  { e:'💭', g:[{w:'صُدُورِ',m:'القلوب'}]},
-  { e:'👥', g:[{w:'الْجِنَّةِ',m:'الجن'}]} ]}
-};
-const ORDER = [108, 1, 112, 113, 114];
-const out = [];
-for (const s of ORDER) {
-  const r = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${s}?words=true&word_fields=text_uthmani,audio_url&per_page=50`);
-  const j = await r.json();
-  const ayat = j.verses.map((v,i) => {
-    const ws = v.words.filter(w => w.char_type_name === 'word');
-    const m = META[s].ayat[i];
-    return { w: ws.map(w=>w.text_uthmani), a: ws.map(w=>w.audio_url), e: m.e,
-      full: `https://everyayah.com/data/Husary_Muallim_128kbps/${String(s).padStart(3,'0')}${String(i+1).padStart(3,'0')}.mp3`, g: m.g };
-  });
-  out.push({ surah: s, name: META[s].name, ayat });
+// يبني quran.js من scripts/quran_words.json (النص العثماني وأرقام أصوات الكلمات) + scripts/quran_meta.mjs (المعاني والرموز)
+//   node scripts/gen_quran.mjs          ← بناء من الملف المحفوظ (بلا إنترنت)
+//   node scripts/gen_quran.mjs --fetch  ← يسحب النص من api.quran.com أولًا ثم يبني
+// لإضافة سورة: أضف رقمها في ORDER ومعانيها في META، ثم شغّل مع --fetch.
+import fs from 'fs';
+import { META, ORDER, DEFAULT_SURAH } from './quran_meta.mjs';
+const here = new URL('.', import.meta.url);
+const pad = n => String(n).padStart(3, '0');
+
+if (process.argv.includes('--fetch')) {
+  const out = {};
+  for (const s of ORDER) {
+    const j = await (await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${s}?words=true&word_fields=text_uthmani,audio_url&per_page=50`)).json();
+    out[s] = j.verses.map(v => {
+      const ws = v.words.filter(w => w.char_type_name === 'word');
+      const idx = ws.map((w, k) => { const a = +w.audio_url.match(/_(\d{3})\.mp3$/)[1]; return a === k + 1 ? '' : String(a); });
+      const text = ws.map(w => w.text_uthmani).join(' ');
+      return idx.some(Boolean) ? [text, idx.join(',')] : text;
+    });
+  }
+  fs.writeFileSync(new URL('quran_words.json', here), JSON.stringify(out));
 }
-const fs = await import('fs');
-fs.writeFileSync(new URL('../quran.js', import.meta.url), `/* القرآن لرزان — مولَّد من scripts/gen_quran.mjs (لا تعدّل يدويًا؛ عدّل META ثم أعد التشغيل)
-   الترتيب الافتراضي: الكوثر ← الفاتحة ← الإخلاص ← الفلق ← الناس. الأم تقدر تختار سورة المدرسة من الإعدادات.
-   عند الانتقال لسورة جديدة يُؤرشف تقدّم السابقة. */
-window.RAZAN_QURAN = { wordAudioBase: 'https://audio.qurancdn.com/', surahs: ${JSON.stringify(out,null,1)} };\n`);
-console.log(out.map(s=>s.name+':'+s.ayat.length).join('\n'));
+
+const words = JSON.parse(fs.readFileSync(new URL('quran_words.json', here), 'utf8'));
+const LETTER = /[ء-ي]/;
+const surahs = ORDER.map(s => {
+  const [name, meta] = META[s];
+  if (!words[s] || words[s].length !== meta.length) throw new Error(`surah ${s}: ${words[s] && words[s].length} ayat vs ${meta.length} meanings`);
+  return { surah: s, name, ayat: words[s].map((row, i) => {
+    const [text, idxStr] = Array.isArray(row) ? row : [row, ''];
+    // علامات الوقف (ۚ ۖ ۩ ۞) تلتصق بالكلمة المجاورة ولا تُعدّ كلمة
+    const toks = []; let lead = '';
+    for (const t of text.split(' ')) {
+      if (LETTER.test(t)) { toks.push(lead + t); lead = ''; }
+      else if (toks.length) toks[toks.length - 1] += ' ' + t; else lead = t + ' ';
+    }
+    const idx = idxStr ? idxStr.split(',') : [];
+    const [e, g] = meta[i];
+    return { w: toks, a: toks.map((_, k) => `wbw/${pad(s)}_${pad(i + 1)}_${pad(idx[k] ? +idx[k] : k + 1)}.mp3`), e,
+      full: `https://everyayah.com/data/Husary_Muallim_128kbps/${pad(s)}${pad(i + 1)}.mp3`,
+      g: g ? g.split(';').map(x => { const [w, m] = x.split('='); return { w, m }; }) : [] };
+  }) };
+});
+fs.writeFileSync(new URL('../quran.js', here), `/* القرآن لرزان — مولَّد من scripts/gen_quran.mjs (لا تعدّل يدويًا؛ عدّل scripts/quran_meta.mjs ثم أعد التشغيل)
+   قصار السور كلها + الفاتحة. الماما تختار سورة المدرسة (الافتراضي: ${META[DEFAULT_SURAH][0]})، وكل سورة تقدّمها محفوظ لوحده. */
+window.RAZAN_QURAN = { wordAudioBase: "https://audio.qurancdn.com/", defaultSurah: ${DEFAULT_SURAH}, surahs: ${JSON.stringify(surahs, null, 1)} };\n`);
+console.log(surahs.length, 'surahs,', surahs.reduce((n, s) => n + s.ayat.length, 0), 'ayat');

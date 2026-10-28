@@ -26,20 +26,22 @@
     const S = state.school, Q = window.RAZAN_QURAN, school = schoolMode();
     const known = new Set(S.known || []);
     const words = wordsFor(schoolLetters(), S.cur);
+    const SCU = (window.RAZAN_SCHOOL || { units: [{ name: '', letters: ALPHA }] }).units;
     $('#momBox').innerHTML = `<h2>👩 إعدادات الماما</h2>
       <div class="mom-card"><h3>طريقة المهمة اليومية</h3>
         <div class="seg"><button class="${school ? 'on' : ''}" data-mode="school">🏫 حسب المدرسة</button>
         <button class="${school ? '' : 'on'}" data-mode="path">🗺️ مسار مرتّب</button></div>
         <p class="muted">${school ? 'المهمة تأخذ حرف الأسبوع من المدرسة، وتراجع الحروف اللي أخذتها، وتعطيها كلمات من حروفها فقط.' : 'المهمة تمشي على ترتيب التطبيق: وحدات الحروف ثم الحركات والمدود (القاعدة النورانية).'}</p></div>
       ${school ? `<div class="mom-card"><h3>🎯 حرف هذا الأسبوع في المدرسة</h3>
-        <div class="agrid">${ALPHA.map(l => `<button class="ag ${S.cur === l ? 'cur' : ''}" data-cur="${l}">${l}</button>`).join('')}</div>
-        <p class="muted">لما تبدأ المدرسة حرفًا جديدًا اختاريه هنا، والحرف السابق ينضاف تلقائيًا للحروف المأخوذة.</p></div>
+        ${nextSchoolLetter() ? `<button class="btn setup" data-cur="${nextSchoolLetter()}">➡️ بدأنا الحرف التالي في المنهج: ${nextSchoolLetter()}</button>` : ''}
+        ${SCU.map(u => `<p class="u-title">${u.name}</p><div class="agrid">${u.letters.map(l => `<button class="ag ${S.cur === l ? 'cur' : ''}" data-cur="${l}">${l}</button>`).join('')}</div>`).join('')}
+        <p class="muted">مرتّبة حسب كتاب لغتي. لما تبدأ المدرسة حرفًا جديدًا اضغطي الزر أو اختاريه، والحرف السابق ينضاف تلقائيًا للحروف المأخوذة.</p></div>
       <div class="mom-card"><h3>✅ الحروف اللي أخذتها رزان قبل</h3>
-        <div class="agrid">${ALPHA.map(l => `<button class="ag ${known.has(l) ? 'on' : ''} ${S.cur === l ? 'dim' : ''}" data-known="${l}">${l}</button>`).join('')}</div>
+        ${SCU.map(u => `<p class="u-title">${u.name}</p><div class="agrid">${u.letters.map(l => `<button class="ag ${known.has(l) ? 'on' : ''} ${S.cur === l ? 'dim' : ''}" data-known="${l}">${l}</button>`).join('')}</div>`).join('')}
         <p class="muted">انقري الحرف لتحديده أو إلغائه. الكلمات المتاحة الآن من حروفها: <b>${ar(words.length)}</b>${words.length ? ' — ' + words.slice(0, 8).map(x => x.w).join('، ') : ''}</p></div>` : ''}
       <div class="mom-card"><h3>🌙 سورة المدرسة</h3>
-        <div class="seg wrap">${Q.surahs.map(s => `<button class="${S.surah === s.surah ? 'on' : ''}" data-surah="${s.surah}">${s.name.replace('سورة ', '')}${state.quranArchive[s.surah] ? ' ✅' : ''}</button>`).join('')}</div>
-        <p class="muted">التقدّم في كل سورة محفوظ لوحده؛ تقدرين ترجعين لأي سورة.</p></div>
+        <div class="seg wrap surahs">${Q.surahs.map(s => `<button class="${S.surah === s.surah ? 'on' : ''}" data-surah="${s.surah}">${s.name.replace('سورة ', '')}${state.quranArchive[s.surah] ? ' ✅' : ''}<small>${ar(s.ayat.length)}</small></button>`).join('')}</div>
+        <p class="muted">كل قصار السور موجودة. التقدّم في كل سورة محفوظ لوحده، ولما تُتمّ رزان سورة ينتقل التطبيق للي بعدها في القائمة (أو اختاري سورة المدرسة بنفسك).</p></div>
       <div class="mom-card"><h3>📱 هذا الجهاز</h3>
         <div class="settings">
           <label class="tog"><input type="checkbox" id="autoIn" ${state.auto !== false ? 'checked' : ''}> 🗣️ نطق تلقائي لكل شيء</label>
@@ -199,7 +201,7 @@
     const arabic = schoolMode() ? SCHOOL_NODES() : ARABIC_NODES();
     $('#journeyBox').innerHTML = `<h2>🗺️ رحلتي</h2><p class="j-lbl">📖 ${schoolMode() ? 'حروفي من المدرسة' : 'القراءة'}</p>
       <div class="j-path">${arabic.length ? arabic.map(node).join('') : '<p class="muted">ماما تختار الحروف من 👩 الإعدادات</p>'}</div>
-      <p class="j-lbl">🌙 القرآن</p><div class="j-path">${Q.surahs.map(s => {
+      <p class="j-lbl">🌙 القرآن</p><div class="j-path">${Q.surahs.filter(s => s.surah === curSurah().surah || state.quranArchive[s.surah] || s.ayat.some((_, j) => state.ayat[qKey(s, j)])).map(s => {
         const done = !!state.quranArchive[s.surah], cur = s.surah === curSurah().surah && !done;
         const have = s.ayat.filter((_, j) => state.ayat[qKey(s, j)]).length;
         return node({ icon: '🌙', name: s.name, sub: `${ar(s.ayat.length)} آيات`, done, cur, locked: false, have, total: s.ayat.length });

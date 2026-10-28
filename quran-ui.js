@@ -45,13 +45,16 @@
     mark(k, j);
     playUrl(wordUrl(a, j), () => setTimeout(() => playSeq(k, rest, id, done), 150));
   }
-  /** تسلسل البناء: تراكمي، والآية الأطول من ٦ كلمات تُبنى نصفًا نصفًا ثم كاملة */
+  /** تسلسل البناء: تراكمي. حتى ٦ كلمات: الآية كلها، ٧–١٠: نصفًا نصفًا، أطول: مقاطع من ٥ كلمات — ثم الآية كاملة */
   window.buildSequence = n => {
     const range = (a, b) => Array.from({ length: b - a }, (_, x) => a + x);
-    const halves = n > 6 ? [[0, Math.ceil(n / 2)], [Math.ceil(n / 2), n]] : [[0, n]];
+    let parts;
+    if (n <= 6) parts = [[0, n]];
+    else if (n <= 10) parts = [[0, Math.ceil(n / 2)], [Math.ceil(n / 2), n]];
+    else { parts = []; const k = Math.ceil(n / 5), size = Math.ceil(n / k); for (let a = 0; a < n; a += size) parts.push([a, Math.min(n, a + size)]); }
     const seq = [];
-    halves.forEach(([a, b]) => { for (let e = a + 1; e <= b; e++) seq.push(...range(a, e), 'pause'); });
-    if (halves.length > 1) seq.push(...range(0, n), 'pause');
+    parts.forEach(([a, b]) => { for (let e = a + 1; e <= b; e++) seq.push(...range(a, e), 'pause'); });
+    if (parts.length > 1) seq.push(...range(0, n), 'pause');
     return seq;
   };
   window.qPlayFull = k => { runId++; const { a } = get(k); playUrl(a.full); };
